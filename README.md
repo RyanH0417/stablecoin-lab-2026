@@ -8,6 +8,29 @@ The core claim, up front:
 > ERC-20 is only a bookkeeping format; anyone can write one in ten minutes. The real work is designing the loop and the permissions around it.
 
 ---
+## Architecture
+
+```
+   User
+    │
+    │ deposit / redeem
+    ▼
+┌─────────┐   transferFrom    ┌─────────┐   mint / burn   ┌──────────────────┐
+│ MockUSDC│◄─────────────────►│  Vault  │◄───────────────►│ SimpleStablecoin │
+│  6 dec  │                   │         │                 │      6 dec       │
+└─────────┘                   └─────────┘                 └──────────────────┘
+                                   ▲
+                                   │ grantRole(MINTER_ROLE, vault)
+                                   │ (not shown in deploy output)
+```
+
+Three contracts:
+- **MockUSDC** — collateral, 6 decimals, open `faucet()`
+- **SimpleStablecoin** — sUSD, 6 decimals, `MINTER_ROLE` + `PAUSER_ROLE`
+- **Vault** — closed loop: `deposit()` mints 1:1, `redeem()` burns and returns
+
+Invariant: `totalCollateral() >= totalSupply()`
+
 
 ## 1. Setup
 
